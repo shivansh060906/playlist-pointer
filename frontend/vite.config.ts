@@ -5,7 +5,7 @@ import { defineConfig } from 'vite'
 
 // The dev server proxies /api to the FastAPI backend, so there is no CORS setup to think about.
 // Point it somewhere else with:  VITE_PROXY_TARGET=http://localhost:9000 npm run dev
-const target = process.env.VITE_PROXY_TARGET ?? 'http://localhost:8001'
+const target = process.env.VITE_PROXY_TARGET ?? 'http://localhost:8000'
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],

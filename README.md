@@ -1,224 +1,98 @@
-# Cherno C++ Lecture Search
+# Playlist Search
 
-Ask a question, get the exact moment in The Cherno's C++ series where it's explained, with a
-jump-to-timestamp link, and optionally a short cited answer.
+Search any YouTube playlist (built around The Cherno's C++ series) and jump to the exact moment in the video.
+Optionally get a short answer with citations. Off-topic questions are refused instead of answered with junk.
 
-Hybrid RAG (dense + BM25 -> RRF -> cross-encoder rerank), three chunking strategies, and an eval
-harness that measures **timestamp accuracy** so every design choice has a number behind it.
+- **Backend:** FastAPI, hybrid retrieval (embeddings + BM25), optional LLM answers (Groq or Gemini)
+- **Frontend:** React + Vite + Tailwind + shadcn/ui
 
-```
-YouTube playlist
-   | yt-dlp (list) + youtube-transcript-api (captions)  /  faster-whisper (fallback, C++-biased prompt)
-   v
-transcripts/*.json  (text + start + duration per caption line)
-   | chunking: fixed | sliding | semantic (embedding-similarity topic shifts)
-   v
-chunks (video_id, start, end, text)
-   |-- bge-small embeddings --> Chroma (cosine)
-   '-- C++-aware tokenizer ---> BM25
-                    |
-query --(glossary expansion)--> BM25 top30 \
-query ------------------------> dense top30 --> RRF fusion --> cross-encoder rerank --> dedupe overlaps
-                                                                         |
-                                       hits with seek_seconds + youtu.be link --> (optional) LLM answer with [n] citations
-```
+## Quick start
 
-## Setup
+You need **Python 3.10+** and **Node 20+**.
 
-Requires **Python 3.10+**. Work from `backend/`.
+### 1. Backend
 
 ```bash
 cd backend
 python -m venv .venv
 source .venv/bin/activate            # Windows: .venv\Scripts\activate
-
-# Optional but recommended: CPU-only torch is ~10x smaller than the default wheel
-pip install torch --index-url https://download.pytorch.org/whl/cpu
-
 pip install -r requirements.txt
 cp .env.example .env                 # Windows: copy .env.example .env
 ```
 
-Edit `.env`: put a free **Groq** (console.groq.com/keys) or **Gemini** (aistudio.google.com/apikey) key in,
-and set `LLM_PROVIDER` to match. The key is only needed for `/api/ask`; search works without it.
+Open `.env` and set an LLM key. It is only needed for the **Ask** tab; search works without one.
 
-### 1. Check the tests pass (offline, ~5 s)
+```
+LLM_PROVIDER=gemini                  # or groq
+GEMINI_API_KEY=your_key              # free: https://aistudio.google.com/apikey
+GEMINI_MODEL=gemini-flash-latest
+```
+(Groq: `LLM_PROVIDER=groq`, `GROQ_API_KEY=...`, free key at https://console.groq.com/keys.)
+
+### 2. Get the data (first playlist)
+
 ```bash
-pytest -q
+python -m scripts.ingest             # downloads captions (resumable; try --limit 5 first)
+python -m scripts.build_index --strategy semantic
+```
+The first run downloads the embedding model (about 130 MB). Use `--playlist "<url>"` on `ingest` for a different
+playlist, or skip this step and add playlists from the UI (see below).
+
+### 3. Run
+
+```bash
+# terminal 1, in backend/
+uvicorn app.main:app --port 8000
+
+# terminal 2, in frontend/
+npm install
+npm run dev                          # open http://localhost:5173
 ```
 
-### 2. Download transcripts
-```bash
-python -m scripts.ingest --limit 5      # smoke test; first title should be "Welcome to C++"
-python -m scripts.ingest                # whole playlist, resumable (re-run to continue)
-```
-- If the first title isn't right, find the playlist URL yourself and pass `--playlist "<url>"`.
-- Ingestion is polite (1-2.5 s between videos) because YouTube blocks scrapers. If you get an IP-block
-  error, wait, change network, or use Whisper:
-  ```bash
-  pip install -r requirements-whisper.txt
-  python -m scripts.ingest --whisper-fallback     # only for videos without captions
-  python -m scripts.ingest --force-whisper        # everything (slow on CPU; best on GPU)
-  ```
+## Using the app
 
-### 3. Build the indexes (first run downloads the embedding model)
-```bash
-python -m scripts.build_index --strategy all
-```
-Prints chunk counts, average words and average seconds per chunk for each strategy.
+- **Find moments** shows transcript passages. Click a timestamp and the player jumps there.
+- **Ask a question** writes a short answer from the top passages, with clickable `[n]` citations.
+- **Playlist menu (top right)** switches playlists or adds one: paste a playlist link and wait for the progress bar.
+  Each playlist is stored in `backend/data/playlists/<id>/`; your first playlist stays in `backend/data/`.
+- **All videos** limits the search to some videos. **Options** holds search mode, result count and extras.
+- `/` focuses the search box.
 
-### 4. Try it from the terminal
-```bash
-python -m scripts.query "why should I use references instead of pointers"
-python -m scripts.query "what is nullptr" --mode bm25 --expand        # opt in to glossary expansion
-python -m scripts.query "explain move semantics" --rerank             # opt in to the cross-encoder
-python -m scripts.query "explain move semantics" --ask                # needs the LLM key
-```
+## Settings (`backend/.env`)
 
-### 5. Run the API
-```bash
-uvicorn app.main:app --reload --port 8000
-```
-Open http://localhost:8000/docs for interactive docs.
-
-## API
-
-| Endpoint | Purpose |
+| Setting | Meaning |
 |---|---|
-| `GET /api/health` | which indexes are built, whether an LLM key is configured |
-| `GET /api/videos` | indexed videos in playlist order |
-| `GET /api/search?q=...` | ranked moments. Params: `k`, `strategy` (fixed/sliding/semantic), `mode` (hybrid/dense/bm25), `rerank` (default off), `expand` (default off), `video_id` (repeatable), `group_by=video` |
-| `POST /api/ask` | `{question, k?, strategy?, mode?, rerank?, expand?, video_ids?}` -> answer + citations |
+| `LLM_PROVIDER`, `GROQ_API_KEY`, `GEMINI_API_KEY`, `*_MODEL` | LLM used by Ask |
+| `DEFAULT_STRATEGY` | how transcripts are split: `semantic` (default), `fixed` or `sliding` |
+| `MIN_RELEVANCE` | off-topic cutoff, 0 to 1 (default 0.55). Higher refuses more; 0 turns it off |
+| `MAX_PLAYLIST_VIDEOS` | cap on playlists added from the UI (default 60) |
+| `PLAYLIST_URL` | playlist used by `scripts.ingest` |
+| `DATA_DIR` | where transcripts and indexes are stored (default `./data`) |
+| `CORS_ORIGINS` | allowed frontend origins |
 
-The API defaults are **rerank off, expand off, hybrid RRF weighted 2:1** (`RRF_WEIGHTS=dense,bm25` in `.env`): in
-our eval the reranker lowered hit@1 and added seconds, and glossary expansion showed no significant gain. Re-check
-on your own questions.
-
-Each hit includes `video_id, title, start, end, seek_seconds, timestamp, url, text, score` and per-stage
-ranks (`dense_rank`, `bm25_rank`, `rerank_score`). `seek_seconds` is what the React player should
-`seekTo()`. It's the chunk start minus a 2 s lead-in (captions lag speech). Responses also carry
-`timings_ms` per stage.
-
-`group_by=video` answers "which episodes cover X?": it retrieves a deeper pool and returns one entry per
-episode with its best moment.
-
-CORS is open to `localhost:5173` (Vite) and `localhost:3000` by default (`CORS_ORIGINS`).
-
-## Building the eval set (the part that makes this CV-worthy)
-
-You need ~50 questions with known answer timestamps.
-
-```bash
-python -m scripts.peek --videos                       # list video ids
-python -m scripts.peek "null pointer"                 # every occurrence, timestamped
-python -m scripts.peek --video VIDEO_ID --at 12:30    # read the transcript around a moment
-cp eval/questions.example.json eval/questions.json    # then fill in your questions
-```
-Write questions the way a *student* would ask them ("why does my linker say unresolved external symbol"),
-not copied from the transcript. Otherwise BM25 wins trivially. Include some that use different words than the
-lecturer did.
-
-```bash
-python -m scripts.eval                       # every built strategy x 10 retrieval configurations
-python -m scripts.eval --skip-rerank         # much faster: drops the slow cross-encoder rows
-python -m scripts.eval --tol 15              # stricter timestamp tolerance (sensitivity check)
-python -m scripts.eval --misses-strategy sliding --misses-config "dense only"   # analyse another config
-```
-Outputs in `eval/results/`:
-
-| file | what it is |
-|---|---|
-| `results.md` / `results.json` | hit@1/3/5, MRR, median seek error, chunk length and latency per (chunking x configuration), with **95% bootstrap CIs** on hit@1 and MRR. This is your headline table. |
-| `results.md` (lower sections) | **paired comparisons**: every configuration vs a baseline (default "dense only"), and every chunking strategy vs `fixed`, as question-by-question differences with CIs. `*` means the CI excludes 0. |
-| `misses.md` / `misses.json` | every question that missed at hit@1 for one configuration (default semantic / "hybrid + glossary"), classified and shown next to what was retrieved and what the index holds at the labelled moment. |
-| `results.md` (effects) | **isolated effects**: glossary on vs off and weighted vs equal-weight RRF, each as a paired comparison against its own control (not against dense). The seek-error column shows a bootstrap CI on the median. |
-| `per_question.json`, `paired.json` | raw per-question ranks and paired stats, for your own analysis. |
-
-Configurations include weighted RRF (`hybrid RRF 2:1`, `3:1` = dense weighted 2x/3x over BM25), because equal-weight
-fusion lets a weak BM25 list drag a strong dense list down.
-
-**Reading the numbers honestly**
-- With ~50 questions each question moves hit@1 by 2 points, so most gaps between configurations are within noise.
-  Trust a difference only if the paired CI excludes 0, and expect about 1 in 20 starred results to be chance
-  (there are many comparisons). More questions is the real fix; ~100+ makes the intervals much tighter.
-- A chunk counts as a hit if it's in the right video and its span +/- tolerance contains the labelled moment.
-  Bigger chunks contain more moments, so hit@k flatters them. Compare it against `avg chunk (s)` and
-  `median seek err (s)` (how far from the true moment a click lands). The best strategy is accurate *and* lands close.
-
-**Working through `misses.md`:** misses are sorted so the cheapest fixes come first.
-1. `label: video not indexed` / `label: timestamp past end of video` are mistakes in `questions.json`. Fix them and re-run
-   before drawing any conclusions.
-2. `hit below rank 1`: the right moment was retrieved but ranked lower. Look at what outranked it.
-3. `right video, wrong moment`: topic found, wrong spot; usually chunking or a lecturer revisiting a topic. Compare the
-   "Expected" snippet with the retrieved ones.
-4. `wrong video`: usually vocabulary mismatch (the lecturer never says the word your question uses) or a concept covered
-   in several videos (add the other occurrence to that question's `answers`).
-
-## Design notes (interview talking points)
-
-- **Chunks keep real timestamps** and snap to caption boundaries, so a citation is always a playable moment.
-- **Title is prepended to every chunk** before embedding/BM25/rerank. Titles like "Templates in C++" carry
-  topic signal that mid-lecture captions lack.
-- **Semantic chunking** is TextTiling-style: embed ~30-word blocks, compare the mean of the 2 blocks before vs
-  after each gap, cut at local similarity minima below the 25th percentile, bounded to 120-320 words.
-- **BM25 tokenizer is C++-aware**: keeps `std::vector` whole (and its parts), maps `c++`/`c plus plus` to `cpp`,
-  stems plurals. A generic tokenizer destroys exactly the tokens keyword search exists for.
-- **Glossary query expansion** repairs ASR mangling on the keyword side (`cout` <-> "see out", `lvalue` <-> "l value",
-  `nullptr` <-> "null pointer") without touching transcripts. It's a toggle so the eval measures what it buys.
-- **RRF** fuses by rank only, so there's no need to normalise BM25 scores against cosine similarities.
-- **Cross-encoder rerank runs on 30 candidates**, not the corpus: precision where it matters, bounded latency.
-- **Overlap dedupe** stops sliding windows from returning five near-identical neighbours.
-- **Citations are validated**: `[n]` numbers outside the retrieved set are dropped rather than trusted.
-- **Whisper is biased with a C++ prompt** (`initial_prompt`), and transcript `source` is stored so you can ablate
-  YouTube auto-captions vs Whisper by pointing `DATA_DIR` at two different folders.
-
-## Auditing your labels (pooled relevance judgments)
-
-One labelled timestamp per question under-counts: lecturers answer the same thing in several places, so valid
-retrievals show up as "misses". The audit finds them without favouring any system (TREC-style pooling):
-
-```bash
-python -m scripts.audit build     # pool the top 3 of EVERY configuration, minus what already counts as correct
-python -m scripts.audit judge     # y/n per excerpt; shuffled, config and rank hidden; resumable (q to stop)
-python -m scripts.audit apply     # writes eval/questions.audited.json
-python -m scripts.eval --questions eval/questions.audited.json --out eval/results_audited
-```
-Rules that keep it defensible: judge **blind** (do not peek at `found_by` in `candidates.json` first), pool **all**
-configurations rather than only the best one, judge every candidate (unjudged ones count as not relevant), and
-**report both** the original and audited numbers plus how many alternatives you added. Judge "would this excerpt on
-its own be a good answer?", not "is it the best one".
-
-## Layout
-
-```
-backend/
-  app/
-    ingest/youtube.py      playlist listing, captions, whisper fallback
-    chunking.py            fixed / sliding / semantic
-    index/                 Chroma + BM25 + jsonl store, index builder
-    retrieval/             tokenizer, glossary, fusion, reranker, embedder, hybrid retriever
-    llm.py                 Groq/Gemini (OpenAI-compatible) client, prompt, citation parsing
-    engine.py              owns models + retrievers
-    main.py, schemas.py    FastAPI app
-    evaluation.py          timestamp-aware metrics, bootstrap CIs, miss classification
-    eval_runner.py         ablation grid, paired comparisons, reports (used by scripts/eval.py)
-    audit.py               pooled relevance judgments (build / judge / apply)
-  scripts/                 ingest, build_index, query, peek, eval, audit
-  eval/                    questions.example.json -> questions.json, results/
-  tests/                   71 offline tests (fake embedder/reranker; no model downloads)
-```
+Changes to `.env` need a backend restart.
 
 ## Troubleshooting
 
-- **`RequestBlocked` / `IpBlocked` during ingest:** YouTube is blocking your IP. Wait, switch network/VPN, or use Whisper.
-- **503 "Index ... has not been built":** run `python -m scripts.build_index --strategy <name>`.
-- **503 "No API key":** set `GROQ_API_KEY` or `GEMINI_API_KEY` and `LLM_PROVIDER` in `.env`.
-- **LLM 400/404 about the model:** free-tier model names change. Update `GROQ_MODEL` / `GEMINI_MODEL`.
-- **Slow first request:** models load lazily; the server warms them in the background at startup (`WARMUP=0` to disable).
-- **Semantic build is slow:** it embeds every ~30-word block of every video. A few minutes on CPU is normal.
+- **Ask tab is greyed out:** no LLM key is set in `backend/.env`.
+- **Ask shows `401`:** the API key is wrong. **`404`/model error:** the model name was retired; list your models in
+  the provider's dashboard and update `GEMINI_MODEL` / `GROQ_MODEL`. **`429`/`503`:** rate limit or overload; retry shortly.
+- **Real questions get "doesn't look related":** lower `MIN_RELEVANCE` (try 0.45), or run
+  `python -m scripts.calibrate --questions eval/questions.json` to get a suggested value.
+- **503 "Index ... has not been built":** run `python -m scripts.build_index --strategy semantic`.
+- **Captions fail to download (`RequestBlocked` / `IpBlocked`):** YouTube blocks some networks and all cloud servers.
+  Wait, switch network, or run locally. For videos without captions: `pip install -r requirements-whisper.txt` then
+  `python -m scripts.ingest --whisper-fallback`.
+- **Adding a playlist from the UI fails:** it needs English captions; videos without them are skipped.
+- **Port 8000 already in use:** start on another port (`--port 8001`) and run the frontend with
+  `VITE_PROXY_TARGET=http://localhost:8001 npm run dev`.
+- **Slow first request:** the models load on first use.
 
-## Next
+## Optional: command line tools and evaluation
 
-1. React page: search box, result cards, embedded YouTube player that `seekTo(seek_seconds)` on click, "Ask" tab.
-2. Eval additions: RAGAS-style faithfulness for `/api/ask`, and a Whisper-vs-captions ablation.
-3. Multi-video "do they agree?" queries on top of `group_by=video`.
+```bash
+python -m scripts.query "why use references instead of pointers"     # search from the terminal (add --ask for an answer)
+pytest -q                                                             # offline tests, no model downloads
+python -m scripts.eval                                                # accuracy tables (needs eval/questions.json, see questions.example.json)
+```
+`scripts.audit` re-checks your eval labels. API docs are at http://localhost:8000/docs while the backend runs.

@@ -91,7 +91,7 @@ class Settings:
             groq_api_key=_env("GROQ_API_KEY"),
             groq_model=_env("GROQ_MODEL", "llama-3.3-70b-versatile"),  # type: ignore[arg-type]
             gemini_api_key=_env("GEMINI_API_KEY"),
-            gemini_model=_env("GEMINI_MODEL", "gemini-2.5-flash"),  # type: ignore[arg-type]
+            gemini_model=_env("GEMINI_MODEL", "gemini-flash-latest"),  # type: ignore[arg-type]
             cors_origins=tuple(o.strip() for o in (origins or "").split(",") if o.strip()),
             # Captions lag the speech slightly, so links start a couple of seconds early.
             lead_in_seconds=int(_env("LEAD_IN_SECONDS", "2")),  # type: ignore[arg-type]
