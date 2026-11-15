@@ -115,6 +115,25 @@ class BM25Store:
             payload = pickle.load(f)
         return cls(payload["bm25"], payload["ids"])
 
+    @property
+    def doc_count(self) -> int:
+        return len(self._ids)
+
+    def _df_tokens(self):
+        self.doc_freq("")  # make sure the cache is built
+        return self._df.keys()
+
+    def doc_freq(self, token: str) -> int:
+        """Number of chunks containing `token` (0 if it never occurs in the corpus)."""
+        df = getattr(self, "_df", None)
+        if df is None:
+            df = {}
+            for freqs in self._bm25.doc_freqs:
+                for t in freqs:
+                    df[t] = df.get(t, 0) + 1
+            self._df = df
+        return df.get(token, 0)
+
     def query(
         self, tokens: list[str], n: int, allowed_ids: set[str] | None = None
     ) -> list[tuple[str, float]]:

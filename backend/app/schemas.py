@@ -48,6 +48,8 @@ class SearchResponse(BaseModel):
     timings_ms: dict[str, float]
     hits: list[HitOut]
     videos: list[VideoGroupOut] | None = None
+    out_of_scope: bool = False  # query looks unrelated to the lectures; hits are only the closest matches
+    relevance: float | None = None  # best dense cosine similarity (debug/calibration)
 
 
 class AskRequest(BaseModel):
@@ -58,6 +60,7 @@ class AskRequest(BaseModel):
     rerank: bool = False
     expand: bool = False
     video_ids: list[str] | None = None
+    playlist: str | None = None
 
 
 class Citation(BaseModel):
@@ -72,6 +75,25 @@ class AskResponse(BaseModel):
     citations: list[Citation]
     hits: list[HitOut]
     timings_ms: dict[str, float]
+    out_of_scope: bool = False
+    relevance: float | None = None
+
+
+class PlaylistAddRequest(BaseModel):
+    url: str = Field(min_length=10, max_length=300)
+
+
+class PlaylistOut(BaseModel):
+    id: str
+    title: str
+    url: str | None = None
+    status: Literal["ready", "queued", "listing", "fetching", "indexing", "failed", "interrupted"]
+    video_count: int = 0
+    done: int = 0
+    total: int = 0
+    skipped: int = 0
+    truncated_from: int | None = None
+    error: str | None = None
 
 
 class VideoOut(BaseModel):

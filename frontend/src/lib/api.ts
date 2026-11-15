@@ -25,6 +25,8 @@ export interface SearchResponse {
   expanded_query: string | null
   timings_ms: Record<string, number>
   hits: Hit[]
+  out_of_scope: boolean
+  relevance: number | null
 }
 
 export interface Citation {
@@ -39,6 +41,8 @@ export interface AskResponse {
   citations: Citation[]
   hits: Hit[]
   timings_ms: Record<string, number>
+  out_of_scope: boolean
+  relevance: number | null
 }
 
 export interface Video {
@@ -56,6 +60,23 @@ export interface Health {
   llm_configured: boolean
   llm_provider: string
 }
+
+export type PlaylistStatus = 'ready' | 'queued' | 'listing' | 'fetching' | 'indexing' | 'failed' | 'interrupted'
+
+export interface Playlist {
+  id: string
+  title: string
+  url: string | null
+  status: PlaylistStatus
+  video_count: number
+  done: number
+  total: number
+  skipped: number
+  truncated_from: number | null
+  error: string | null
+}
+
+export const isBusy = (p: Playlist) => ['queued', 'listing', 'fetching', 'indexing'].includes(p.status)
 
 export interface SearchOptions {
   strategy: string | null
@@ -108,9 +129,22 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const getHealth = (signal?: AbortSignal) => request<Health>('/api/health', { signal })
-export const getVideos = (signal?: AbortSignal) => request<Video[]>('/api/videos', { signal })
+export const getVideos = (playlist: string | null, signal?: AbortSignal) =>
+  request<Video[]>(`/api/videos${playlist ? `?playlist=${encodeURIComponent(playlist)}` : ''}`, { signal })
 
-export function search(q: string, o: SearchOptions, signal?: AbortSignal) {
+export const getPlaylists = (signal?: AbortSignal) => request<Playlist[]>('/api/playlists', { signal })
+export const addPlaylist = (url: string) =>
+  request<Playlist>('/api/playlists', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ url }),
+  })
+export const deletePlaylist = async (id: string) => {
+  const res = await fetch(`${BASE}/api/playlists/${encodeURIComponent(id)}`, { method: 'DELETE' })
+  if (!res.ok && res.status !== 404) throw new ApiError("Couldn't remove that playlist.", res.status)
+}
+
+export function search(q: string, o: SearchOptions, playlist: string | null, signal?: AbortSignal) {
   const p = new URLSearchParams({
     q,
     k: String(o.k),
@@ -119,11 +153,12 @@ export function search(q: string, o: SearchOptions, signal?: AbortSignal) {
     expand: String(o.expand),
   })
   if (o.strategy) p.set('strategy', o.strategy)
+  if (playlist) p.set('playlist', playlist)
   o.videoIds.forEach((id) => p.append('video_id', id))
   return request<SearchResponse>(`/api/search?${p}`, { signal })
 }
 
-export function ask(question: string, o: SearchOptions, signal?: AbortSignal) {
+export function ask(question: string, o: SearchOptions, playlist: string | null, signal?: AbortSignal) {
   return request<AskResponse>('/api/ask', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -135,6 +170,7 @@ export function ask(question: string, o: SearchOptions, signal?: AbortSignal) {
       rerank: o.rerank,
       expand: o.expand,
       video_ids: o.videoIds.length ? o.videoIds : null,
+      playlist,
     }),
     signal,
   })

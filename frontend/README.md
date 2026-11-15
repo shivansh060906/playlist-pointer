@@ -52,3 +52,8 @@ src/
 
 - The embedded player uses `youtube-nocookie.com`. Some videos disallow embedding; the "YouTube" button always works.
 - Adding another shadcn component later: `npx shadcn@latest add <name>` works as normal (`components.json` is included).
+
+
+## Off-topic queries
+
+When the API returns `out_of_scope: true` the page shows a short refusal instead of results, with example queries and a "Show closest matches anyway" button. The threshold lives on the backend (`MIN_RELEVANCE`).

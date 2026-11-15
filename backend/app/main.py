@@ -1,6 +1,7 @@
 """FastAPI server.  Run from backend/:  uvicorn app.main:app --reload --port 8000"""
 from __future__ import annotations
 
+import dataclasses
 import threading
 from contextlib import asynccontextmanager
 from typing import Literal
@@ -11,6 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from .config import get_settings
 from .engine import RAGEngine
 from .index.store import IndexNotBuilt
+from .library import JobBusy, UnknownPlaylist
 from .llm import LLMNotConfigured
 from .retrieval.hybrid import group_hits_by_video
 from .schemas import (
@@ -19,6 +21,8 @@ from .schemas import (
     Citation,
     HealthResponse,
     Mode,
+    PlaylistAddRequest,
+    PlaylistOut,
     SearchResponse,
     VideoOut,
     hit_out,
@@ -75,8 +79,49 @@ def health(engine: RAGEngine = Depends(get_engine)):
 
 
 @app.get("/api/videos", response_model=list[VideoOut])
-def videos(engine: RAGEngine = Depends(get_engine)):
-    return engine.videos()
+def videos(playlist: str | None = None, engine: RAGEngine = Depends(get_engine)):
+    try:
+        return engine.videos(playlist)
+    except UnknownPlaylist as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@app.get("/api/playlists", response_model=list[PlaylistOut])
+def playlists(engine: RAGEngine = Depends(get_engine)):
+    return [dataclasses.asdict(p) for p in engine.library.list()]
+
+
+@app.post("/api/playlists", response_model=PlaylistOut, status_code=202)
+def add_playlist(body: PlaylistAddRequest, engine: RAGEngine = Depends(get_engine)):
+    """Start indexing a playlist in the background; poll GET /api/playlists/{id} for progress."""
+    try:
+        return dataclasses.asdict(engine.library.add(body.url))
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except JobBusy as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+
+
+@app.get("/api/playlists/{playlist_id}", response_model=PlaylistOut)
+def playlist_status(playlist_id: str, engine: RAGEngine = Depends(get_engine)):
+    try:
+        engine.library.settings_for(playlist_id)
+    except UnknownPlaylist:
+        if playlist_id not in {p.id for p in engine.library.list()}:  # a job may exist before its folder
+            raise HTTPException(status_code=404, detail=f"Unknown playlist {playlist_id!r}") from None
+    return dataclasses.asdict(engine.library.info(playlist_id))
+
+
+@app.delete("/api/playlists/{playlist_id}", status_code=204)
+def delete_playlist(playlist_id: str, engine: RAGEngine = Depends(get_engine)):
+    try:
+        engine.library.delete(playlist_id)
+    except UnknownPlaylist as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except JobBusy as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @app.get("/api/search", response_model=SearchResponse)
@@ -89,13 +134,15 @@ def search(
     expand: bool = False,
     video_id: list[str] | None = Query(None, description="Restrict to these videos (repeatable)"),
     group_by: Literal["none", "video"] = "none",
+    playlist: str | None = Query(None, description="Playlist id (default: the built-in playlist)"),
     engine: RAGEngine = Depends(get_engine),
 ):
     # Grouping by video needs a deeper pool, otherwise one chatty video fills all k slots.
     fetch_k = max(k, 20) if group_by == "video" else k
     try:
         result = engine.search(
-            q, fetch_k, strategy=strategy, mode=mode, rerank=rerank, expand=expand, video_ids=video_id
+            q, fetch_k, strategy=strategy, mode=mode, rerank=rerank, expand=expand, video_ids=video_id,
+            playlist=playlist,
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
@@ -113,6 +160,8 @@ def search(
         timings_ms=result.timings_ms,
         hits=[hit_out(h, lead) for h in result.hits],
         videos=groups,
+        out_of_scope=result.out_of_scope,
+        relevance=None if result.top_dense is None else round(result.top_dense, 4),
     )
 
 
@@ -127,6 +176,7 @@ def ask(body: AskRequest, engine: RAGEngine = Depends(get_engine)):
             rerank=body.rerank,
             expand=body.expand,
             video_ids=body.video_ids,
+            playlist=body.playlist,
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
@@ -146,4 +196,6 @@ def ask(body: AskRequest, engine: RAGEngine = Depends(get_engine)):
         citations=[Citation(index=i, hit=hits[i - 1]) for i in result.cited],
         hits=hits,
         timings_ms=result.timings_ms,
+        out_of_scope=result.out_of_scope,
+        relevance=None if result.top_dense is None else round(result.top_dense, 4),
     )

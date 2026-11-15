@@ -23,6 +23,11 @@ _UNAVAILABLE_TITLES = {"[Private video]", "[Deleted video]"}
 
 def list_playlist(url: str) -> list[dict]:
     """Return [{video_id, title, playlist_index, duration}] in playlist order (no downloads)."""
+    return list_playlist_info(url)[1]
+
+
+def list_playlist_info(url: str) -> tuple[str, list[dict]]:
+    """Like list_playlist, but also returns the playlist's own title."""
     import yt_dlp
 
     opts = {"quiet": True, "no_warnings": True, "extract_flat": "in_playlist", "skip_download": True}
@@ -41,7 +46,7 @@ def list_playlist(url: str) -> list[dict]:
                 "duration": entry.get("duration"),
             }
         )
-    return entries
+    return (info.get("title") or "Untitled playlist"), entries
 
 
 def fetch_captions(
@@ -117,12 +122,15 @@ def ingest_playlist(
     overwrite: bool = False,
     delay: tuple[float, float] = (1.0, 2.5),
     log: Callable[[str], None] = print,
+    progress: Callable[[int, int], None] | None = None,
 ) -> dict:
     """Fetch and save one JSON transcript per video. Resumable: existing files are skipped."""
     out_dir.mkdir(parents=True, exist_ok=True)
     stats = {"saved": 0, "skipped": 0, "failed": {}}  # type: dict
 
-    for entry in entries:
+    for n, entry in enumerate(entries):
+        if progress:
+            progress(n, len(entries))
         video_id = entry["video_id"]
         path = out_dir / f"{video_id}.json"
         if path.exists() and not overwrite:
@@ -167,4 +175,6 @@ def ingest_playlist(
         if not used_whisper:
             time.sleep(random.uniform(*delay))
 
+    if progress:
+        progress(len(entries), len(entries))
     return stats

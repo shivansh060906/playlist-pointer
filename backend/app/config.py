@@ -39,6 +39,8 @@ class Settings:
     lead_in_seconds: int
     warmup: bool
     rrf_weights: tuple[float, float]  # (dense, bm25) weights for hybrid fusion
+    max_playlist_videos: int  # cap for playlists added through the API
+    min_relevance: float  # top dense cosine below this (and no rare term) = out of scope; 0 disables
 
     @property
     def transcripts_dir(self) -> Path:
@@ -72,6 +74,13 @@ class Settings:
         if len(parsed) != 2 or min(parsed) < 0 or sum(parsed) <= 0:
             raise ValueError(f"RRF_WEIGHTS must look like '2,1' (dense,bm25), got {raw_weights!r}")
 
+        try:
+            min_relevance = float(_env("MIN_RELEVANCE", "0.55") or "0.55")
+        except ValueError as exc:
+            raise ValueError("MIN_RELEVANCE must be a number between 0 and 1") from exc
+        if not 0 <= min_relevance <= 1:
+            raise ValueError(f"MIN_RELEVANCE must be between 0 and 1, got {min_relevance}")
+
         return cls(
             data_dir=data_dir,
             playlist_url=_env("PLAYLIST_URL", DEFAULT_PLAYLIST),  # type: ignore[arg-type]
@@ -88,6 +97,8 @@ class Settings:
             lead_in_seconds=int(_env("LEAD_IN_SECONDS", "2")),  # type: ignore[arg-type]
             warmup=(_env("WARMUP", "1") or "1").lower() not in ("0", "false", "no"),
             rrf_weights=(parsed[0], parsed[1]),
+            min_relevance=min_relevance,
+            max_playlist_videos=max(1, int(_env("MAX_PLAYLIST_VIDEOS", "60") or "60")),
         )
 
 

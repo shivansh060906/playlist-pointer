@@ -30,6 +30,7 @@ class Hit:
     dense_rank: int | None = None
     bm25_rank: int | None = None
     rerank_score: float | None = None
+    dense_score: float | None = None  # cosine similarity to the query (None if not in the dense list)
 
 
 @dataclass
@@ -39,6 +40,8 @@ class SearchResult:
     mode: str
     rerank_applied: bool
     expanded_query: str | None = None
+    top_dense: float | None = None  # best cosine similarity among dense candidates
+    out_of_scope: bool = False  # query looks unrelated to the indexed lectures
 
 
 def _ms(since: float) -> float:
@@ -96,7 +99,11 @@ class Retriever:
         embedder,
         reranker=None,
         glossary: Glossary | None = None,
+        min_relevance: float = 0.0,
+        rare_df_fraction: float = 0.01,
     ):
+        self.min_relevance = min_relevance  # 0 disables the out-of-scope check
+        self.rare_df_fraction = rare_df_fraction
         self.strategy = strategy
         self.chunks = chunks
         self._by_id = {c.chunk_id: c for c in chunks}
@@ -118,7 +125,19 @@ class Retriever:
             embedder=embedder,
             reranker=reranker,
             glossary=glossary,
+            min_relevance=settings.min_relevance,
         )
+
+    def has_rare_term(self, query: str) -> bool:
+        """True if the query contains a term that is specific to a few chunks (e.g. `LNK2005`,
+        `std::move`). Such queries are legitimate even when the embedding similarity is low."""
+        cap = max(3, int(self.rare_df_fraction * self.bm25.doc_count))
+        return any(0 < self.bm25.doc_freq(t) <= cap for t in set(tokenize(query)))
+
+    def is_out_of_scope(self, query: str, top_dense: float | None) -> bool:
+        if self.min_relevance <= 0 or top_dense is None:
+            return False
+        return top_dense < self.min_relevance and not self.has_rare_term(query)
 
     @property
     def avg_chunk_seconds(self) -> float:
@@ -168,6 +187,8 @@ class Retriever:
             sparse = self.bm25.query(tokenize(bm25_query), candidates, allowed)
             timings["bm25"] = _ms(t)
 
+        dense_score = {cid: sc for cid, sc in dense}
+        top_dense = dense[0][1] if dense else None
         dense_rank = {cid: r for r, (cid, _) in enumerate(dense, start=1)}
         sparse_rank = {cid: r for r, (cid, _) in enumerate(sparse, start=1)}
 
@@ -199,10 +220,13 @@ class Retriever:
                 dense_rank=dense_rank.get(cid),
                 bm25_rank=sparse_rank.get(cid),
                 rerank_score=rerank_scores.get(cid),
+                dense_score=dense_score.get(cid),
             )
             for cid, base in ordered
         ]
         if dedupe:
             hits = dedupe_overlaps(hits)
         timings["total"] = _ms(started)
-        return SearchResult(hits[:k], timings, mode, reranked, expanded)
+        return SearchResult(
+            hits[:k], timings, mode, reranked, expanded, top_dense, self.is_out_of_scope(query, top_dense)
+        )

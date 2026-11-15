@@ -29,7 +29,7 @@ class StubEngine:
     def llm_configured(self):
         return True
 
-    def videos(self):
+    def videos(self, playlist=None):
         return [{"video_id": "v1", "title": "Pointers", "playlist_index": 1, "duration": 600.0, "chunk_count": 4}]
 
     def search(self, query, k, **kw):
@@ -37,7 +37,11 @@ class StubEngine:
         if kw.get("strategy") == "bogus":
             raise ValueError("strategy must be one of ...")
         hits = [_hit("c1", "v1", 100.4, 160, 2.5), _hit("c2", "v2", 5, 40, 1.5), _hit("c3", "v1", 300, 360, 1.0)]
-        return SearchResult(hits[:k], {"total": 12.0, "dense": 5.0}, kw.get("mode", "hybrid"), True, "q expanded")
+        off = "pony" in query
+        return SearchResult(
+            hits[:k], {"total": 12.0, "dense": 5.0}, kw.get("mode", "hybrid"), True, "q expanded",
+            0.31 if off else 0.82, off,
+        )
 
     def ask(self, question, k, **kw):
         from app.engine import AskResult
@@ -50,6 +54,8 @@ class StubEngine:
             raise RuntimeError("upstream exploded")
         self.last = {"question": question, "k": k, **kw}
         hits = [_hit("c1", "v1", 100.4, 160, 2.5)]
+        if "pony" in question:
+            return AskResult("Not related.", hits, [], {"total": 3.0}, "stub", False, True, 0.31)
         return AskResult("A pointer holds an address [1].", hits, [1], {"total": 9.0, "llm": 4.0}, "stub", True)
 
 
@@ -121,3 +127,17 @@ def test_default_search_and_ask_leave_rerank_and_expand_off():
     assert stub.last["rerank"] is False and stub.last["expand"] is False
     client.post("/api/ask", json={"question": "what is a pointer"})
     assert stub.last["rerank"] is False and stub.last["expand"] is False
+
+
+def test_search_reports_out_of_scope_and_relevance():
+    ok = client.get("/api/search", params={"q": "what is a pointer"}).json()
+    assert ok["out_of_scope"] is False and ok["relevance"] == 0.82
+    off = client.get("/api/search", params={"q": "my little pony"}).json()
+    assert off["out_of_scope"] is True and off["relevance"] == 0.31 and off["hits"]  # closest hits kept
+
+
+def test_ask_reports_out_of_scope_without_citations():
+    body = client.post("/api/ask", json={"question": "tell me about my little pony"}).json()
+    assert body["out_of_scope"] is True and body["citations"] == [] and body["hits"]
+    ok = client.post("/api/ask", json={"question": "what is a pointer"}).json()
+    assert ok["out_of_scope"] is False

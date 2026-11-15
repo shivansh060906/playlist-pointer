@@ -17,15 +17,22 @@ import {
   DEFAULT_OPTIONS,
   ask,
   getHealth,
+  addPlaylist,
+  deletePlaylist,
+  getPlaylists,
   getVideos,
+  isBusy,
   search,
   type AskResponse,
   type Health,
   type Hit,
+  type Playlist,
   type SearchOptions,
   type SearchResponse,
   type Video,
 } from '@/lib/api'
+import { PlaylistSwitcher } from '@/components/playlist-switcher'
+import { OutOfScope } from '@/components/out-of-scope'
 import { queryTerms } from '@/lib/text'
 
 type Tab = 'search' | 'ask'
@@ -39,9 +46,18 @@ const EXAMPLES = [
   'What is constant folding?',
 ]
 
-function initialParams(): { q: string; tab: Tab } {
+function initialParams(): { q: string; tab: Tab; pl: string | null } {
   const p = new URLSearchParams(window.location.search)
-  return { q: p.get('q') ?? '', tab: p.get('tab') === 'ask' ? 'ask' : 'search' }
+  return { q: p.get('q') ?? '', tab: p.get('tab') === 'ask' ? 'ask' : 'search', pl: p.get('pl') }
+}
+
+const PL_KEY = 'playlist'
+function savedPlaylist(): string | null {
+  try {
+    return localStorage.getItem(PL_KEY)
+  } catch {
+    return null
+  }
 }
 
 export default function App() {
@@ -53,6 +69,8 @@ export default function App() {
   const [health, setHealth] = useState<Health | null>(null)
   const [healthError, setHealthError] = useState<string | null>(null)
   const [videos, setVideos] = useState<Video[]>([])
+  const [playlists, setPlaylists] = useState<Playlist[] | null>(null)
+  const [playlist, setPlaylist] = useState<string | null>(null)
 
   const [result, setResult] = useState<Result | null>(null)
   const [loading, setLoading] = useState(false)
@@ -61,25 +79,61 @@ export default function App() {
   const [selected, setSelected] = useState<Hit | null>(null)
   const [autoplay, setAutoplay] = useState(false)
   const [nonce, setNonce] = useState(0)
+  const [showClosest, setShowClosest] = useState(false)
 
   const inputRef = useRef<HTMLInputElement>(null)
   const abortRef = useRef<AbortController | null>(null)
 
-  // Check the API once on load.
+  // Check the API once on load, then pick a playlist: ?pl= from the URL, else the last one used, else the first ready one.
   useEffect(() => {
     const ctrl = new AbortController()
     getHealth(ctrl.signal)
       .then((h) => {
         setHealth(h)
-        return getVideos(ctrl.signal)
+        return getPlaylists(ctrl.signal)
       })
-      .then((v) => setVideos([...v].sort((a, b) => a.playlist_index - b.playlist_index)))
+      .then((list) => {
+        setPlaylists(list)
+        const ready = list.filter((p) => p.status === 'ready')
+        const wanted = [initial.pl, savedPlaylist()].find((id) => id && ready.some((p) => p.id === id))
+        setPlaylist(wanted ?? ready[0]?.id ?? null)
+      })
       .catch((e) => {
         if (e instanceof DOMException && e.name === 'AbortError') return
         setHealthError(e instanceof ApiError ? e.message : 'Unexpected error')
       })
     return () => ctrl.abort()
-  }, [])
+  }, [initial])
+
+  // Load the video list whenever the playlist changes.
+  useEffect(() => {
+    if (!playlist) return
+    const ctrl = new AbortController()
+    getVideos(playlist, ctrl.signal)
+      .then((v) => setVideos([...v].sort((a, b) => a.playlist_index - b.playlist_index)))
+      .catch((e) => {
+        if (e instanceof DOMException && e.name === 'AbortError') return
+        setVideos([])
+      })
+    return () => ctrl.abort()
+  }, [playlist])
+
+  // While a playlist is being indexed, poll its progress; select it when it finishes.
+  const busyId = playlists?.find(isBusy)?.id ?? null
+  useEffect(() => {
+    if (!busyId) return
+    const timer = setInterval(() => {
+      getPlaylists()
+        .then((list) => {
+          setPlaylists(list)
+          const done = list.find((p) => p.id === busyId)
+          if (done?.status === 'ready') choosePlaylist(done.id)
+        })
+        .catch(() => {})
+    }, 1500)
+    return () => clearInterval(timer)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [busyId])
 
   // Press "/" anywhere to jump to the search box.
   useEffect(() => {
@@ -107,15 +161,17 @@ export default function App() {
       const url = new URL(window.location.href)
       url.searchParams.set('q', text)
       url.searchParams.set('tab', which)
+      if (playlist) url.searchParams.set('pl', playlist)
       window.history.replaceState(null, '', url)
 
       try {
         const next: Result =
           which === 'ask'
-            ? { kind: 'ask', query: text, data: await ask(text, opts, ctrl.signal) }
-            : { kind: 'search', query: text, data: await search(text, opts, ctrl.signal) }
+            ? { kind: 'ask', query: text, data: await ask(text, opts, playlist, ctrl.signal) }
+            : { kind: 'search', query: text, data: await search(text, opts, playlist, ctrl.signal) }
         setResult(next)
-        setSelected(next.data.hits[0] ?? null)
+        setShowClosest(false)
+        setSelected(next.data.out_of_scope ? null : (next.data.hits[0] ?? null))
         setAutoplay(false)
         setNonce((n) => n + 1)
       } catch (e) {
@@ -126,17 +182,17 @@ export default function App() {
         if (abortRef.current === ctrl) setLoading(false)
       }
     },
-    [],
+    [playlist],
   )
 
   // If the page was opened with ?q=..., run it once the API check has finished.
   const ranInitial = useRef(false)
   useEffect(() => {
-    if (health && !ranInitial.current && initial.q.trim().length >= 3) {
+    if (health && playlist && !ranInitial.current && initial.q.trim().length >= 3) {
       ranInitial.current = true
       void run(initial.q, initial.tab, options)
     }
-  }, [health, initial, options, run])
+  }, [health, playlist, initial, options, run])
 
   function submit(e?: React.FormEvent) {
     e?.preventDefault()
@@ -159,6 +215,51 @@ export default function App() {
     if (result) void run(query, tab, next)
   }
 
+  function choosePlaylist(id: string) {
+    setPlaylist(id)
+    setResult(null)
+    setError(null)
+    setSelected(null)
+    setShowClosest(false)
+    setVideos([])
+    setOptions((o) => ({ ...o, videoIds: [] }))
+    try {
+      localStorage.setItem(PL_KEY, id)
+    } catch {
+      /* storage unavailable; the choice just won't be remembered */
+    }
+    const url = new URL(window.location.href)
+    url.searchParams.set('pl', id)
+    url.searchParams.delete('q')
+    window.history.replaceState(null, '', url)
+  }
+
+  async function handleAdd(url: string) {
+    const info = await addPlaylist(url)
+    setPlaylists((list) => [...(list ?? []).filter((p) => p.id !== info.id), info])
+    if (info.status === 'ready') choosePlaylist(info.id)
+  }
+
+  async function handleRemove(id: string) {
+    await deletePlaylist(id)
+    const list = await getPlaylists()
+    setPlaylists(list)
+    if (id === playlist) {
+      const next = list.find((p) => p.status === 'ready')
+      if (next) choosePlaylist(next.id)
+      else {
+        setPlaylist(null)
+        setResult(null)
+        setVideos([])
+      }
+    }
+  }
+
+  function revealClosest() {
+    setShowClosest(true)
+    setSelected(result?.data.hits[0] ?? null)
+  }
+
   function pick(hit: Hit) {
     setSelected(hit)
     setAutoplay(true)
@@ -177,7 +278,9 @@ export default function App() {
     () => new Set(result?.kind === 'ask' ? result.data.citations.map((c) => c.index) : []),
     [result],
   )
-  const noIndex = health !== null && health.strategies_built.length === 0
+  const refused = !!result?.data.out_of_scope && !showClosest
+  const noIndex = playlists !== null && !playlists.some((p) => p.status === 'ready') && !playlists.some(isBusy)
+  const examples = playlist === 'default' ? EXAMPLES : videos.slice(0, 4).map((v) => v.title)
   const askUnavailable = health !== null && !health.llm_configured
   const timing = result?.data.timings_ms.total
 
@@ -186,10 +289,21 @@ export default function App() {
       <header className="border-b">
         <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
           <div className="flex items-baseline gap-2">
-            <h1 className="text-base font-semibold tracking-tight">Cherno C++ Search</h1>
-            <span className="hidden text-sm text-muted-foreground sm:inline">Find the moment in the lecture</span>
+            <h1 className="text-base font-semibold tracking-tight">Playlist Search</h1>
+            <span className="hidden text-sm text-muted-foreground md:inline">Find the moment in the video</span>
           </div>
-          <ThemeToggle />
+          <div className="flex items-center gap-2">
+            {playlists && (
+              <PlaylistSwitcher
+                playlists={playlists}
+                selected={playlist}
+                onSelect={choosePlaylist}
+                onAdd={handleAdd}
+                onRemove={(id) => void handleRemove(id)}
+              />
+            )}
+            <ThemeToggle />
+          </div>
         </div>
       </header>
 
@@ -211,17 +325,17 @@ export default function App() {
                 ref={inputRef}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder={tab === 'ask' ? 'Ask anything about C++ as taught in the series' : 'Describe what you want to find, e.g. why is my linker complaining'}
+                placeholder={tab === 'ask' ? 'Ask a question about this playlist' : 'Describe what you want to find'}
                 className="h-11 pr-16 pl-9 text-base"
                 maxLength={tab === 'ask' ? 500 : 300}
                 autoFocus
-                aria-label="Search the lectures"
+                aria-label="Search the playlist"
               />
               <kbd className="pointer-events-none absolute top-1/2 right-3 hidden -translate-y-1/2 rounded border bg-muted px-1.5 font-mono text-[11px] text-muted-foreground sm:block">
                 /
               </kbd>
             </div>
-            <Button type="submit" size="lg" className="h-11" disabled={loading || query.trim().length < 3}>
+            <Button type="submit" size="lg" className="h-11" disabled={loading || !playlist || query.trim().length < 3}>
               {tab === 'ask' ? 'Ask' : 'Search'}
               <CornerDownLeft className="hidden sm:block" />
             </Button>
@@ -237,7 +351,7 @@ export default function App() {
             />
             {result && !loading && (
               <span className="ml-auto text-xs text-muted-foreground tabular-nums">
-                {hits.length} passages{timing !== undefined ? ` · ${Math.round(timing)} ms` : ''}
+                {refused ? 'Not related to this playlist' : `${hits.length} passages`}{timing !== undefined ? ` · ${Math.round(timing)} ms` : ''}
               </span>
             )}
           </div>
@@ -259,12 +373,9 @@ export default function App() {
         {noIndex && (
           <Alert className="mt-6">
             <AlertCircle />
-            <AlertTitle>No index built yet</AlertTitle>
+            <AlertTitle>No playlist yet</AlertTitle>
             <AlertDescription>
-              <p>
-                Run <code className="rounded bg-muted px-1 py-0.5 font-mono text-xs">python -m scripts.build_index --strategy semantic</code> in the
-                backend folder.
-              </p>
+              <p>Use the playlist button at the top right and paste a YouTube playlist link. It takes about a second per video.</p>
             </AlertDescription>
           </Alert>
         )}
@@ -279,11 +390,11 @@ export default function App() {
           </Alert>
         )}
 
-        {!result && !loading && !error && !healthError && (
+        {!result && !loading && !error && !healthError && playlist && examples.length > 0 && (
           <section className="mt-10 space-y-3">
             <p className="text-sm text-muted-foreground">Try one of these</p>
             <div className="flex flex-wrap gap-2">
-              {EXAMPLES.map((ex) => (
+              {examples.map((ex) => (
                 <Button key={ex} variant="outline" size="sm" className="h-auto whitespace-normal py-1.5 text-left font-normal" onClick={() => runExample(ex)}>
                   {ex}
                 </Button>
@@ -296,7 +407,13 @@ export default function App() {
         )}
 
         {(loading || result) && (
-          <div className="mt-6 grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)]">
+          <div
+            className={
+              refused
+                ? 'mt-6 grid grid-cols-[minmax(0,1fr)] gap-6'
+                : 'mt-6 grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,26rem)]'
+            }
+          >
             <div className="order-2 space-y-3 lg:order-1">
               {loading ? (
                 <>
@@ -306,10 +423,24 @@ export default function App() {
                   ))}
                 </>
               ) : (
-                result && (
+                result && refused ? (
+                  <OutOfScope
+                    message={result.kind === 'ask' ? result.data.answer : undefined}
+                    hasHits={hits.length > 0}
+                    onShowClosest={revealClosest}
+                    onPickExample={runExample}
+                    examples={examples}
+                  />
+                ) : (
+                  result && (
                   <>
-                    {result.kind === 'ask' && <AnswerPanel data={result.data} onCite={jumpToSource} />}
-                    {result.kind === 'ask' && <h2 className="pt-2 text-sm font-medium text-muted-foreground">Sources</h2>}
+                    {result.data.out_of_scope && (
+                      <p className="text-xs text-muted-foreground">
+                        Closest matches only. These probably don't answer your query.
+                      </p>
+                    )}
+                    {result.kind === 'ask' && !result.data.out_of_scope && <AnswerPanel data={result.data} onCite={jumpToSource} />}
+                    {result.kind === 'ask' && !result.data.out_of_scope && <h2 className="pt-2 text-sm font-medium text-muted-foreground">Sources</h2>}
                     {result.kind === 'search' && result.data.expanded_query && (
                       <p className="text-xs text-muted-foreground">Also searched for: {result.data.expanded_query}</p>
                     )}
@@ -326,15 +457,18 @@ export default function App() {
                       />
                     ))}
                   </>
+                  )
                 )
               )}
             </div>
 
-            <aside className="order-1 lg:order-2">
-              <div className="lg:sticky lg:top-4">
-                <Player hit={selected} autoplay={autoplay} nonce={nonce} />
-              </div>
-            </aside>
+            {!refused && (
+              <aside className="order-1 lg:order-2">
+                <div className="lg:sticky lg:top-4">
+                  <Player hit={selected} autoplay={autoplay} nonce={nonce} />
+                </div>
+              </aside>
+            )}
           </div>
         )}
       </main>

@@ -18,14 +18,15 @@ PROVIDERS = {
     "gemini": "https://generativelanguage.googleapis.com/v1beta/openai",
 }
 
-SYSTEM_PROMPT = """You are a teaching assistant for The Cherno's C++ video series. Answer the student's question using ONLY the numbered transcript excerpts provided.
+SYSTEM_PROMPT = """You are a helpful assistant for a video playlist: {topic}. Answer the viewer's question using ONLY the numbered transcript excerpts provided.
 
 Rules:
 - Cite every claim with the excerpt number in square brackets, e.g. [1] or [2][3].
-- If the excerpts do not contain the answer, say so plainly. Do not fill gaps from outside knowledge.
-- Transcripts are auto-generated and may contain misheard C++ terms (e.g. "see out" for cout, "l value" for lvalue). Use the correct term silently.
+- If the question is unrelated to this playlist's subject or the excerpts are clearly not about it, reply with exactly NOT_COVERED and nothing else.
+- If the excerpts only partly contain the answer, say so plainly. Do not fill gaps from outside knowledge.
+- Transcripts are auto-generated and may contain misheard technical terms (e.g. "see out" for cout). Use the correct term silently.
 - Be concise: at most ~150 words of plain prose. Include a short code snippet only if an excerpt clearly describes one.
-- Mention which video and timestamp the student should jump to for the full explanation."""
+- Mention which video and timestamp the viewer should jump to for the full explanation."""
 
 _CITATION = re.compile(r"\[(\d+)\]")
 
@@ -75,13 +76,13 @@ class LLMClient:
         raise RuntimeError(f"LLM request failed after retries ({last_error})")
 
 
-def build_messages(question: str, hits: Sequence[Hit]) -> list[dict]:
+def build_messages(question: str, hits: Sequence[Hit], topic: str = "a video series") -> list[dict]:
     blocks = []
     for i, hit in enumerate(hits, start=1):
         c = hit.chunk
         blocks.append(f"[{i}] \"{c.title}\" (starts at {format_timestamp(c.start)})\n{c.text}")
     user = f"Question: {question}\n\nExcerpts:\n\n" + "\n\n".join(blocks)
-    return [{"role": "system", "content": SYSTEM_PROMPT}, {"role": "user", "content": user}]
+    return [{"role": "system", "content": SYSTEM_PROMPT.format(topic=topic)}, {"role": "user", "content": user}]
 
 
 def cited_indices(answer: str, n_hits: int) -> list[int]:
