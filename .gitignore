@@ -1,0 +1,13 @@
+.env
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+backend/data/
+backend/eval/questions.json
+backend/eval/results/
+backend/audit/
+node_modules/
+dist/
+.DS_Store

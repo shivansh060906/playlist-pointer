@@ -1,0 +1,24 @@
+{
+  "_comment": "Copy to questions.json and replace with ~50 real questions. Find timestamps with: python -m scripts.peek \"phrase\". `answers` can list several (video_id, timestamp) pairs when a concept is explained in more than one video. timestamp accepts seconds (754) or \"12:34\". Items whose video_id starts with REPLACE are ignored.",
+  "questions": [
+    {
+      "id": "ptr-nullptr",
+      "question": "What is a null pointer and is it valid for a pointer to be null?",
+      "answers": [{ "video_id": "REPLACE_WITH_VIDEO_ID", "timestamp": "4:30" }]
+    },
+    {
+      "id": "ref-vs-ptr",
+      "question": "How is a reference different from a pointer?",
+      "answers": [
+        { "video_id": "REPLACE_WITH_VIDEO_ID", "timestamp": "2:10" },
+        { "video_id": "REPLACE_WITH_ANOTHER_VIDEO_ID", "timestamp": "11:05" }
+      ]
+    },
+    {
+      "id": "vtable",
+      "question": "How do virtual functions work under the hood?",
+      "video_id": "REPLACE_WITH_VIDEO_ID",
+      "timestamp": 754
+    }
+  ]
+}

@@ -1,0 +1,722 @@
+[
+  {
+    "n": 50,
+    "hit@1": 0.88,
+    "hit@3": 0.96,
+    "hit@5": 1.0,
+    "mrr": 0.9256666666666666,
+    "median_seek_error_s": 23.400000000000006,
+    "p50_latency_ms": 17.8,
+    "strategy": "fixed",
+    "config": "dense only",
+    "avg_chunk_s": 57.7,
+    "hit@1_ci": [
+      0.78,
+      0.96
+    ],
+    "mrr_ci": [
+      0.8639916666666667,
+      0.98
+    ],
+    "median_seek_error_ci": [
+      17.41999999999996,
+      27.939999999999998
+    ]
+  },
+  {
+    "n": 50,
+    "hit@1": 0.66,
+    "hit@3": 0.84,
+    "hit@5": 0.92,
+    "mrr": 0.7600476190476191,
+    "median_seek_error_s": 28.440000000000055,
+    "p50_latency_ms": 0.5,
+    "strategy": "fixed",
+    "config": "bm25 only",
+    "avg_chunk_s": 57.7,
+    "hit@1_ci": [
+      0.54,
+      0.78
+    ],
+    "mrr_ci": [
+      0.6658369047619048,
+      0.8523880952380952
+    ],
+    "median_seek_error_ci": [
+      24.92,
+      30.089999999999975
+    ]
+  },
+  {
+    "n": 50,
+    "hit@1": 0.66,
+    "hit@3": 0.76,
+    "hit@5": 0.92,
+    "mrr": 0.746047619047619,
+    "median_seek_error_s": 28.620000000000005,
+    "p50_latency_ms": 1.2,
+    "strategy": "fixed",
+    "config": "bm25 + glossary",
+    "avg_chunk_s": 57.7,
+    "hit@1_ci": [
+      0.52,
+      0.78
+    ],
+    "mrr_ci": [
+      0.6405666666666667,
+      0.8445273809523809
+    ],
+    "median_seek_error_ci": [
+      24.92,
+      30.599999999999994
+    ]
+  },
+  {
+    "n": 50,
+    "hit@1": 0.84,
+    "hit@3": 0.96,
+    "hit@5": 1.0,
+    "mrr": 0.9056666666666666,
+    "median_seek_error_s": 26.75000000000003,
+    "p50_latency_ms": 17.8,
+    "strategy": "fixed",
+    "config": "hybrid (RRF)",
+    "avg_chunk_s": 57.7,
+    "hit@1_ci": [
+      0.74,
+      0.94
+    ],
+    "mrr_ci": [
+      0.8429833333333333,
+      0.9600166666666665
+    ],
+    "median_seek_error_ci": [
+      22.429999999999996,
+      29.234999999999985
+    ]
+  },
+  {
+    "n": 50,
+    "hit@1": 0.82,
+    "hit@3": 1.0,
+    "hit@5": 1.0,
+    "mrr": 0.9,
+    "median_seek_error_s": 24.600000000000023,
+    "p50_latency_ms": 18.9,
+    "strategy": "fixed",
+    "config": "hybrid RRF 2:1",
+    "avg_chunk_s": 57.7,
+    "hit@1_ci": [
+      0.7,
+      0.92
+    ],
+    "mrr_ci": [
+      0.8366666666666666,
+      0.9566666666666666
+    ],
+    "median_seek_error_ci": [
+      17.760000000000005,
+      28.75999999999999
+    ]
+  },
+  {
+    "n": 50,
+    "hit@1": 0.82,
+    "hit@3": 1.0,
+    "hit@5": 1.0,
+    "mrr": 0.9033333333333333,
+    "median_seek_error_s": 25.88,
+    "p50_latency_ms": 18.8,
+    "strategy": "fixed",
+    "config": "hybrid RRF 3:1",
+    "avg_chunk_s": 57.7,
+    "hit@1_ci": [
+      0.7,
+      0.92
+    ],
+    "mrr_ci": [
+      0.84,
+      0.9566666666666667
+    ],
+    "median_seek_error_ci": [
+      19.879999999999995,
+      28.220000000000027
+    ]
+  },
+  {
+    "n": 50,
+    "hit@1": 0.78,
+    "hit@3": 0.94,
+    "hit@5": 1.0,
+    "mrr": 0.875,
+    "median_seek_error_s": 27.41999999999996,
+    "p50_latency_ms": 19.7,
+    "strategy": "fixed",
+    "config": "hybrid + glossary",
+    "avg_chunk_s": 57.7,
+    "hit@1_ci": [
+      0.66,
+      0.88
+    ],
+    "mrr_ci": [
+      0.805,
+      0.935
+    ],
+    "median_seek_error_ci": [
+      23.099999999999994,
+      30.089999999999975
+    ]
+  },
+  {
+    "n": 50,
+    "hit@1": 0.84,
+    "hit@3": 1.0,
+    "hit@5": 1.0,
+    "mrr": 0.9066666666666667,
+    "median_seek_error_s": 24.54000000000002,
+    "p50_latency_ms": 19.6,
+    "strategy": "fixed",
+    "config": "hybrid 2:1 + glossary",
+    "avg_chunk_s": 57.7,
+    "hit@1_ci": [
+      0.74,
+      0.94
+    ],
+    "mrr_ci": [
+      0.8433333333333333,
+      0.9666666666666666
+    ],
+    "median_seek_error_ci": [
+      17.589999999999982,
+      28.0
+    ]
+  },
+  {
+    "n": 50,
+    "hit@1": 0.86,
+    "hit@3": 0.94,
+    "hit@5": 0.96,
+    "mrr": 0.895,
+    "median_seek_error_s": 24.080000000000013,
+    "p50_latency_ms": 612.7,
+    "strategy": "fixed",
+    "config": "hybrid + rerank",
+    "avg_chunk_s": 57.7,
+    "hit@1_ci": [
+      0.76,
+      0.94
+    ],
+    "mrr_ci": [
+      0.8166666666666668,
+      0.9633333333333334
+    ],
+    "median_seek_error_ci": [
+      16.279999999999973,
+      27.88000000000001
+    ]
+  },
+  {
+    "n": 50,
+    "hit@1": 0.86,
+    "hit@3": 0.94,
+    "hit@5": 0.96,
+    "mrr": 0.8969999999999999,
+    "median_seek_error_s": 24.080000000000013,
+    "p50_latency_ms": 612.0,
+    "strategy": "fixed",
+    "config": "hybrid + glossary + rerank",
+    "avg_chunk_s": 57.7,
+    "hit@1_ci": [
+      0.76,
+      0.94
+    ],
+    "mrr_ci": [
+      0.81965,
+      0.9633333333333334
+    ],
+    "median_seek_error_ci": [
+      16.279999999999973,
+      27.88000000000001
+    ]
+  },
+  {
+    "n": 50,
+    "hit@1": 0.94,
+    "hit@3": 1.0,
+    "hit@5": 1.0,
+    "mrr": 0.9666666666666666,
+    "median_seek_error_s": 14.47999999999999,
+    "p50_latency_ms": 16.0,
+    "strategy": "sliding",
+    "config": "dense only",
+    "avg_chunk_s": 57.6,
+    "hit@1_ci": [
+      0.88,
+      1.0
+    ],
+    "mrr_ci": [
+      0.9266666666666665,
+      1.0
+    ],
+    "median_seek_error_ci": [
+      10.919999999999959,
+      18.559999999999945
+    ]
+  },
+  {
+    "n": 50,
+    "hit@1": 0.68,
+    "hit@3": 0.9,
+    "hit@5": 0.92,
+    "mrr": 0.7930555555555556,
+    "median_seek_error_s": 20.71999999999999,
+    "p50_latency_ms": 0.8,
+    "strategy": "sliding",
+    "config": "bm25 only",
+    "avg_chunk_s": 57.6,
+    "hit@1_ci": [
+      0.54,
+      0.8
+    ],
+    "mrr_ci": [
+      0.703048611111111,
+      0.8791666666666665
+    ],
+    "median_seek_error_ci": [
+      15.129999999999981,
+      25.0
+    ]
+  },
+  {
+    "n": 50,
+    "hit@1": 0.66,
+    "hit@3": 0.86,
+    "hit@5": 0.92,
+    "mrr": 0.7688333333333333,
+    "median_seek_error_s": 23.25999999999999,
+    "p50_latency_ms": 1.4,
+    "strategy": "sliding",
+    "config": "bm25 + glossary",
+    "avg_chunk_s": 57.6,
+    "hit@1_ci": [
+      0.52,
+      0.8
+    ],
+    "mrr_ci": [
+      0.6683333333333334,
+      0.8600125
+    ],
+    "median_seek_error_ci": [
+      15.259999999999975,
+      27.889999999999986
+    ]
+  },
+  {
+    "n": 50,
+    "hit@1": 0.88,
+    "hit@3": 0.96,
+    "hit@5": 0.98,
+    "mrr": 0.9265000000000001,
+    "median_seek_error_s": 18.879999999999974,
+    "p50_latency_ms": 17.8,
+    "strategy": "sliding",
+    "config": "hybrid (RRF)",
+    "avg_chunk_s": 57.6,
+    "hit@1_ci": [
+      0.78,
+      0.96
+    ],
+    "mrr_ci": [
+      0.8684999999999999,
+      0.98
+    ],
+    "median_seek_error_ci": [
+      13.120000000000005,
+      23.0
+    ]
+  },
+  {
+    "n": 50,
+    "hit@1": 0.9,
+    "hit@3": 0.98,
+    "hit@5": 0.98,
+    "mrr": 0.9395238095238096,
+    "median_seek_error_s": 18.559999999999945,
+    "p50_latency_ms": 17.7,
+    "strategy": "sliding",
+    "config": "hybrid RRF 2:1",
+    "avg_chunk_s": 57.6,
+    "hit@1_ci": [
+      0.82,
+      0.98
+    ],
+    "mrr_ci": [
+      0.8847619047619049,
+      0.9866666666666666
+    ],
+    "median_seek_error_ci": [
+      12.759999999999991,
+      24.850000000000023
+    ]
+  },
+  {
+    "n": 50,
+    "hit@1": 0.9,
+    "hit@3": 0.98,
+    "hit@5": 1.0,
+    "mrr": 0.9440000000000001,
+    "median_seek_error_s": 18.559999999999945,
+    "p50_latency_ms": 17.4,
+    "strategy": "sliding",
+    "config": "hybrid RRF 3:1",
+    "avg_chunk_s": 57.6,
+    "hit@1_ci": [
+      0.82,
+      0.98
+    ],
+    "mrr_ci": [
+      0.894,
+      0.99
+    ],
+    "median_seek_error_ci": [
+      12.759999999999991,
+      24.850000000000023
+    ]
+  },
+  {
+    "n": 50,
+    "hit@1": 0.8,
+    "hit@3": 0.92,
+    "hit@5": 0.98,
+    "mrr": 0.8755,
+    "median_seek_error_s": 19.639999999999993,
+    "p50_latency_ms": 17.5,
+    "strategy": "sliding",
+    "config": "hybrid + glossary",
+    "avg_chunk_s": 57.6,
+    "hit@1_ci": [
+      0.7,
+      0.9
+    ],
+    "mrr_ci": [
+      0.8009999999999999,
+      0.9405499999999998
+    ],
+    "median_seek_error_ci": [
+      13.120000000000005,
+      23.849999999999966
+    ]
+  },
+  {
+    "n": 50,
+    "hit@1": 0.86,
+    "hit@3": 0.98,
+    "hit@5": 0.98,
+    "mrr": 0.9128571428571429,
+    "median_seek_error_s": 18.559999999999945,
+    "p50_latency_ms": 18.3,
+    "strategy": "sliding",
+    "config": "hybrid 2:1 + glossary",
+    "avg_chunk_s": 57.6,
+    "hit@1_ci": [
+      0.76,
+      0.94
+    ],
+    "mrr_ci": [
+      0.85,
+      0.9695357142857144
+    ],
+    "median_seek_error_ci": [
+      14.47999999999999,
+      24.24000000000001
+    ]
+  },
+  {
+    "n": 50,
+    "hit@1": 0.82,
+    "hit@3": 0.94,
+    "hit@5": 0.98,
+    "mrr": 0.8813333333333333,
+    "median_seek_error_s": 12.879999999999995,
+    "p50_latency_ms": 591.4,
+    "strategy": "sliding",
+    "config": "hybrid + rerank",
+    "avg_chunk_s": 57.6,
+    "hit@1_ci": [
+      0.72,
+      0.92
+    ],
+    "mrr_ci": [
+      0.80465,
+      0.9500166666666665
+    ],
+    "median_seek_error_ci": [
+      10.120000000000005,
+      18.559999999999945
+    ]
+  },
+  {
+    "n": 50,
+    "hit@1": 0.82,
+    "hit@3": 0.94,
+    "hit@5": 0.98,
+    "mrr": 0.8845555555555555,
+    "median_seek_error_s": 12.879999999999995,
+    "p50_latency_ms": 621.6,
+    "strategy": "sliding",
+    "config": "hybrid + glossary + rerank",
+    "avg_chunk_s": 57.6,
+    "hit@1_ci": [
+      0.72,
+      0.92
+    ],
+    "mrr_ci": [
+      0.8106583333333335,
+      0.9500166666666665
+    ],
+    "median_seek_error_ci": [
+      10.120000000000005,
+      18.559999999999945
+    ]
+  },
+  {
+    "n": 50,
+    "hit@1": 0.86,
+    "hit@3": 0.96,
+    "hit@5": 1.0,
+    "mrr": 0.9166666666666667,
+    "median_seek_error_s": 11.879999999999995,
+    "p50_latency_ms": 16.7,
+    "strategy": "semantic",
+    "config": "dense only",
+    "avg_chunk_s": 62.4,
+    "hit@1_ci": [
+      0.76,
+      0.96
+    ],
+    "mrr_ci": [
+      0.8533333333333334,
+      0.9700416666666664
+    ],
+    "median_seek_error_ci": [
+      8.639999999999986,
+      27.32000000000005
+    ]
+  },
+  {
+    "n": 50,
+    "hit@1": 0.68,
+    "hit@3": 0.88,
+    "hit@5": 0.9,
+    "mrr": 0.7818571428571428,
+    "median_seek_error_s": 19.24000000000001,
+    "p50_latency_ms": 0.5,
+    "strategy": "semantic",
+    "config": "bm25 only",
+    "avg_chunk_s": 62.4,
+    "hit@1_ci": [
+      0.56,
+      0.8
+    ],
+    "mrr_ci": [
+      0.6900666666666666,
+      0.8708654761904762
+    ],
+    "median_seek_error_ci": [
+      8.639999999999986,
+      33.610000000000014
+    ]
+  },
+  {
+    "n": 50,
+    "hit@1": 0.72,
+    "hit@3": 0.86,
+    "hit@5": 0.92,
+    "mrr": 0.799357142857143,
+    "median_seek_error_s": 24.020000000000003,
+    "p50_latency_ms": 1.1,
+    "strategy": "semantic",
+    "config": "bm25 + glossary",
+    "avg_chunk_s": 62.4,
+    "hit@1_ci": [
+      0.6,
+      0.84
+    ],
+    "mrr_ci": [
+      0.7033172619047622,
+      0.8875089285714285
+    ],
+    "median_seek_error_ci": [
+      11.120000000000005,
+      37.08000000000001
+    ]
+  },
+  {
+    "n": 50,
+    "hit@1": 0.84,
+    "hit@3": 0.98,
+    "hit@5": 1.0,
+    "mrr": 0.905,
+    "median_seek_error_s": 22.4,
+    "p50_latency_ms": 18.2,
+    "strategy": "semantic",
+    "config": "hybrid (RRF)",
+    "avg_chunk_s": 62.4,
+    "hit@1_ci": [
+      0.74,
+      0.94
+    ],
+    "mrr_ci": [
+      0.8433333333333334,
+      0.9633333333333333
+    ],
+    "median_seek_error_ci": [
+      9.649999999999991,
+      29.71500000000006
+    ]
+  },
+  {
+    "n": 50,
+    "hit@1": 0.88,
+    "hit@3": 0.98,
+    "hit@5": 1.0,
+    "mrr": 0.9283333333333332,
+    "median_seek_error_s": 11.680000000000007,
+    "p50_latency_ms": 17.1,
+    "strategy": "semantic",
+    "config": "hybrid RRF 2:1",
+    "avg_chunk_s": 62.4,
+    "hit@1_ci": [
+      0.7995000000000001,
+      0.96
+    ],
+    "mrr_ci": [
+      0.8716666666666667,
+      0.98
+    ],
+    "median_seek_error_ci": [
+      8.240000000000009,
+      25.900000000000006
+    ]
+  },
+  {
+    "n": 50,
+    "hit@1": 0.86,
+    "hit@3": 1.0,
+    "hit@5": 1.0,
+    "mrr": 0.92,
+    "median_seek_error_s": 12.930000000000007,
+    "p50_latency_ms": 17.9,
+    "strategy": "semantic",
+    "config": "hybrid RRF 3:1",
+    "avg_chunk_s": 62.4,
+    "hit@1_ci": [
+      0.76,
+      0.9404999999999972
+    ],
+    "mrr_ci": [
+      0.8633333333333333,
+      0.9700833333333329
+    ],
+    "median_seek_error_ci": [
+      8.720000000000027,
+      27.32000000000005
+    ]
+  },
+  {
+    "n": 50,
+    "hit@1": 0.9,
+    "hit@3": 0.98,
+    "hit@5": 1.0,
+    "mrr": 0.9383333333333335,
+    "median_seek_error_s": 24.92,
+    "p50_latency_ms": 18.4,
+    "strategy": "semantic",
+    "config": "hybrid + glossary",
+    "avg_chunk_s": 62.4,
+    "hit@1_ci": [
+      0.82,
+      0.98
+    ],
+    "mrr_ci": [
+      0.885,
+      0.9866666666666666
+    ],
+    "median_seek_error_ci": [
+      8.839999999999975,
+      29.80000000000001
+    ]
+  },
+  {
+    "n": 50,
+    "hit@1": 0.84,
+    "hit@3": 0.98,
+    "hit@5": 1.0,
+    "mrr": 0.9083333333333334,
+    "median_seek_error_s": 13.984999999999985,
+    "p50_latency_ms": 17.4,
+    "strategy": "semantic",
+    "config": "hybrid 2:1 + glossary",
+    "avg_chunk_s": 62.4,
+    "hit@1_ci": [
+      0.74,
+      0.94
+    ],
+    "mrr_ci": [
+      0.8466666666666666,
+      0.965
+    ],
+    "median_seek_error_ci": [
+      8.632499999999988,
+      28.47500000000008
+    ]
+  },
+  {
+    "n": 50,
+    "hit@1": 0.8,
+    "hit@3": 0.94,
+    "hit@5": 0.98,
+    "mrr": 0.8766666666666666,
+    "median_seek_error_s": 17.220000000000013,
+    "p50_latency_ms": 806.3,
+    "strategy": "semantic",
+    "config": "hybrid + rerank",
+    "avg_chunk_s": 62.4,
+    "hit@1_ci": [
+      0.68,
+      0.9
+    ],
+    "mrr_ci": [
+      0.8016666666666665,
+      0.945
+    ],
+    "median_seek_error_ci": [
+      8.780000000000001,
+      26.610000000000028
+    ]
+  },
+  {
+    "n": 50,
+    "hit@1": 0.8,
+    "hit@3": 0.94,
+    "hit@5": 0.98,
+    "mrr": 0.8766666666666666,
+    "median_seek_error_s": 17.220000000000013,
+    "p50_latency_ms": 807.8,
+    "strategy": "semantic",
+    "config": "hybrid + glossary + rerank",
+    "avg_chunk_s": 62.4,
+    "hit@1_ci": [
+      0.68,
+      0.9
+    ],
+    "mrr_ci": [
+      0.8016666666666665,
+      0.945
+    ],
+    "median_seek_error_ci": [
+      8.780000000000001,
+      26.610000000000028
+    ]
+  }
+]

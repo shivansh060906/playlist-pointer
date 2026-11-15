@@ -1,0 +1,216 @@
+{
+  "total_questions": 50,
+  "counts": {
+    "hit below rank 1": 5
+  },
+  "misses": [
+    {
+      "id": "preprocessor-define",
+      "question": "What does #define actually do to my code before it gets compiled?",
+      "category": "hit below rank 1",
+      "detail": "first correct result is at rank 3",
+      "rank": 3,
+      "expected": [
+        {
+          "video_id": "3tIqpEmWMLI",
+          "title": "How the C++ Compiler Works",
+          "timestamp": "8:49",
+          "text_at_label": "include end brace and then right click on our hello world project and hit properties under cc++ and then pre-processor I'm going to set the pre-process to a file to yes make sure that you're editing your current configuration and platform so that these settings actually apply let's hit okay and then we're going to just hit contrl F7 to build this again if we bring up our output directory you'll see this new I file which is our pre-processed cc++ code let's open this in a text editor so that we can look at it okay so here you can see what the pre-processor has actually generated you can see that our source code had this include end brace and yet the pre-processor code has just inserted our end brace that was in that H file that we've included pretty simple stuff let's add some more pre-processor statements and see what it does so back in our file I'm going to restore our end brace because I'm getting tired at looking at that include I'm then going to come up here and Define something I'm going to define the word integer to be int now don't ask me why I would ever do this this is just an example the defined pre-processor statement will B basically just do a search for this word and replace it with whatever follows so let's replace our int here with the word integer so that we actually return this integer we can also do the same here let's hit contrl F7 and if we look back at our file you can see what's happened it just looks normal int result if we were to do something stupid here like write the word Cho and then hit contrl F7 if we go back to our file you can see it now says Cho multiply and Cho result pretty cool stuff let's play around with this a little bit more let's bring back our int we'll get rid of this Define and"
+        }
+      ],
+      "retrieved": [
+        {
+          "rank": 1,
+          "video_id": "3tIqpEmWMLI",
+          "title": "How the C++ Compiler Works",
+          "timestamp": "9:34",
+          "text": "instead what I'm going to do is actually just use something called if the if pre-processor statement can let us include or exclude code based on a given condition so over here I'm just going to write if one which in other words means true and then just write an end if at the end of this function I'll hit C contrl F7 we'll go back to our preprocessor file and you can see that it looks exactly like it does here without the if statement if I go back here and I switch this off by writing if0 Visual Studio will fade out our code to show that it's disabled if I hit contrl F7 and take a look at this file we have no code so that's another great example of a pre-processor statement all right one more we'll look at include so let's get rid of our if0 and then I'm going to write include IO stream the"
+        },
+        {
+          "rank": 2,
+          "video_id": "3tIqpEmWMLI",
+          "title": "How the C++ Compiler Works",
+          "timestamp": "5:42",
+          "text": "result variable nice and simple that's it let's hit control 7 to build that file you can see over here that it's built it successfully I'm actually going to just resize Visual Studio a little bit just to make it easier so now you can see the output window a bit better if we look back into our output directory you can see that we've got this math. obj file now and it's 4 kilobytes before we take a look at what exactly is in that object file let's talk about the first edge of compilation which I mentioned earlier pre-processing during the pre-processing stage the compiler will basically just go through all of our pre-processing statements and evaluate them the ones that we commonly use are include Define if and if def there are also pragma statements which tell the compiler exactly what to do but we'll talk about them in another video so let's take a look at one of the most common pre-processor statements that we have hash include how does that work so hash include is actually really simple you basically specify which file you want to include and then the pre-processor will open that file read all of its contents and just paste it into the file where you wrote your include statement and that's it it's really really simple and I'm about to"
+        },
+        {
+          "rank": 3,
+          "video_id": "3tIqpEmWMLI",
+          "title": "How the C++ Compiler Works",
+          "timestamp": "7:57",
+          "text": "include end brace and then right click on our hello world project and hit properties under cc++ and then pre-processor I'm going to set the pre-process to a file to yes make sure that you're editing your current configuration and platform so that these settings actually apply let's hit okay and then we're going to just hit contrl F7 to build this again if we bring up our output directory you'll see this new I file which is our pre-processed cc++ code let's open this in a text editor so that we can look at it okay so here you can see what the pre-processor has actually generated you can see that our source code had this include end brace and yet the pre-processor code has just inserted our end brace that was in that H file that we've included pretty simple stuff let's add some more pre-processor statements and see what it does so back in our file I'm going to restore our end brace because I'm getting tired at looking at that include I'm then going to come up here and Define something I'm going to define the word integer to be int now don't ask me why I would ever do this this is just an example the defined pre-processor statement will B basically just do a search for this word and replace it with whatever follows so let's replace our int here with the word integer so that we actually return this integer we can also do the same here let's hit contrl F7 and if we look back at our file you can see what's happened it just looks normal int result if we were to do something stupid here like write the word Cho and then hit contrl F7 if we go back to our file you can see it now says Cho multiply and Cho result pretty cool stuff let's play around with this a little bit more let's bring back our int we'll get rid of this Define and"
+        }
+      ]
+    },
+    {
+      "id": "duplicate-symbols",
+      "question": "My project won't link because a function is \"already defined\" even though I only wrote it once. Why does this happen and how do I fix it?",
+      "category": "hit below rank 1",
+      "detail": "first correct result is at rank 3",
+      "rank": 3,
+      "expected": [
+        {
+          "video_id": "H4s55GgAg0I",
+          "title": "How the C++ Linker Works",
+          "timestamp": "9:44",
+          "text_at_label": "errors great okay so the other type of linking error that's pretty common is when we have duplicate symbols so in other words we have functions or variables which have the same name and the same signature so two identically named functions which have the same return value and the same parameters if that happens we're trouble the reason we're in trouble is because the Linker doesn't know which one to link to it's ambiguous so back in our code if I was for example to write another version of this function so I'll just literally copy and paste this function and try and build my code you'll note that we actually get a compile error because this already has a body and the compiler can kind of tell us that yeah okay since I'm compiling this file I can obviously see that you've made a mistake this cist isn't valid so this is an example of having duplicate symbols where the compiler can actually save us because this all happens in one file and no linking actually needs to happen to see that we've got an error however if I was to move this into a different file for example I'll move it back into our math file right over here so we still have our declaration I can leave that there that's fine that's just a declaration we"
+        },
+        {
+          "video_id": "H4s55GgAg0I",
+          "title": "How the C++ Linker Works",
+          "timestamp": "13:00",
+          "text_at_label": "like so into log. CVP and then also over here and now you can see that we of course do have two log functions so how do we fix this well we've got a few options here if we undo all of this so that we're including log again we could mark this log function as static that means that the linking that should happen to this log function should only be internal which means that this log function when it gets included into log. CPP and math. CPP is going to be just internal to this file kind of like what we did with multiply so basically log and math will have their own versions of this function called log and it won't be visible to any other object files so if we just just compile this now you'll see that we won't get any linking errors another thing that we could do to this is make it inline of course inline just"
+        }
+      ],
+      "retrieved": [
+        {
+          "rank": 1,
+          "video_id": "H4s55GgAg0I",
+          "title": "How the C++ Linker Works",
+          "timestamp": "10:46",
+          "text": "only have one definition of log in this file so it's not going to give us a compiling error if I hit contrl F7 just to compile this you can see it's totally fine but now if I build we get a linking error and you can see that the one we get it tells us that we have this log function already defined in log. obj one or more multiply defined symbols found so in this case the Linker doesn't know which log function to link to does it link to the one in math. CPP or does it link to the one in log. CPP it doesn't know now you might think that this type of error is not something that would happen often and that you're smarter than that however this can creep up on you so I'll show you a few ways as to how that can happen all right firstly let's just remove this extra log"
+        },
+        {
+          "rank": 2,
+          "video_id": "H4s55GgAg0I",
+          "title": "How the C++ Linker Works",
+          "timestamp": "7:27",
+          "text": "linking error and you might be like what but why is that happening I'm not calling multiply anywhere why is it complaining about a linking error shouldn't it have just removed the function entirely since it's essentially dead code that's never used wrong because whilst we're not using the multiply function in this file we actually could technically use it in another file and so the Linker does actually need to link that if we could somehow tell the compiler that hey this function multiply I'm only ever going to use it inside this file then of course we could remove that linking necessity since if multiply is never called it never needs to call log oh wait there is a way we could do that if we come over here and write the word static in front of multiply that basically means that this multiply function is only declared for this translation unit which is this math. CPP file in our case and since multiply is never called inside this file if I build we won't get any linking errors if I bring back my comment though and then I build of course we will get a"
+        },
+        {
+          "rank": 3,
+          "video_id": "H4s55GgAg0I",
+          "title": "How the C++ Linker Works",
+          "timestamp": "12:52",
+          "text": "like so into log. CVP and then also over here and now you can see that we of course do have two log functions so how do we fix this well we've got a few options here if we undo all of this so that we're including log again we could mark this log function as static that means that the linking that should happen to this log function should only be internal which means that this log function when it gets included into log. CPP and math. CPP is going to be just internal to this file kind of like what we did with multiply so basically log and math will have their own versions of this function called log and it won't be visible to any other object files so if we just just compile this now you'll see that we won't get any linking errors another thing that we could do to this is make it inline of course inline just"
+        }
+      ]
+    },
+    {
+      "id": "function-call-cost",
+      "question": "Is there a performance cost to calling a function? What actually happens when I call one?",
+      "category": "hit below rank 1",
+      "detail": "first correct result is at rank 4",
+      "rank": 4,
+      "expected": [
+        {
+          "video_id": "V9zuox47zr0",
+          "title": "Functions in C++",
+          "timestamp": "6:07",
+          "text_at_label": "rid of all of this code and this is what we end up with a nice clean and easy to read program if I launch my program you can see that we get the correct values here so this is a pretty simple example but I think it's effective in demonstrating that functions are really really important you should be aiming to split up your code into many many functions however one thing that I want to stress is don't go overboard you don't need a function for absolutely every line of code that's not going to be good for anyone it's going to be hard to maintain your code's going to look messy and cluttered and it's actually going to make your program slower every time we call a function asterisk the compiler generates a call instruction what this basically means is that in a running program in order for us to call a function we need to create the entire stack frame for the function meaning we have to push things like the parameters onto the stack we have to also push something called a return address onto the stack and then what we do is we actually jump to a different part of our binary in order to start executing the instructions from our function and that return value that we push we need to get back to where we originally were before we called the function so there's this whole like jumping around memory in order to execute function instructions and all of that takes time so it slows down our program now the reason I said asterisk earlier was because this is all assuming that the compiler decides to keep our function as an actual function and doesn't inline it we're going to"
+        }
+      ],
+      "retrieved": [
+        {
+          "rank": 1,
+          "video_id": "3tIqpEmWMLI",
+          "title": "How the C++ Compiler Works",
+          "timestamp": "16:13",
+          "text": "your function we'll talk more about this in the linking video but essentially when we have multiple objs and our functions are defined in multiple objs it's going to be the linker's job to link all of them together and the way that it's going to do that is it's going to look up this function signature so all you need to know here is that we're calling this log function that's what the compiler will actually do when you call a function it will generate a call instruction now in this case it might be a little bit stupid because you can see that we're simply calling log we're not even storing the return value basically this could be optimized quite a bit if we go back here and we turn on optimization to maximize speed and hit contrl F7 you'll actually see that that just disappears entirely yep the compiler just decided that does nothing I'm going to remove that code but you should basically Now understand the gist"
+        },
+        {
+          "rank": 2,
+          "video_id": "V9zuox47zr0",
+          "title": "Functions in C++",
+          "timestamp": "3:19",
+          "text": "copy and paste it a few times I'll call this something like result 2 result 3 we'll do 8 * 5 90 * 45 and if I run my program and oh hang on a minute why am I getting the same value everywhere oh look when I copied and pasted this code I forgot to change the variable now you may have thought that I did that by accident but I actually did it on purpose to prove something this actually happens all the time people copy and paste blocks of code and then forget to change one minor detail and in certain situations you might actually just run your program and not even notice that it's not working correctly Until It Breaks somewhere down the line and yet something like this can actually be fixed really easily if you just create a function for it so let's go ahead and fix this by actually printing out result 2 and three if I run this we will get our correct results which is great however you can see that I'm actually calling this multiple times and it's just a little bit annoying like for example further down the road if I decide to replace this multiply function by simply doing something like 8 * 5 look at this I have to replace it in every single place 3 * 2 90 * 45 that's I don't want to have to deal with that so this multiplication and then logging the result let's go ahead and make a function for that it'll be void because it's not really going to return anything to us it's just going to perform what we ask it to do we'll call this something like multiply and log and then let's"
+        },
+        {
+          "rank": 3,
+          "video_id": "V9zuox47zr0",
+          "title": "Functions in C++",
+          "timestamp": "2:30",
+          "text": "B and we returned the product of those two integers so how do we call this function well calling a function is pretty simple let's go ahead and try and print the result of a multiplication I'm going to first of all make a variable which holds this result so I'll type in result equals multiply and we'll go with three and two so what this is going to do is call this multiply function with these two parameters and then store the return value that is this result of a * B in this result integer we can then output that result result to the console let's hit F5 to run our program and after it builds you can see that we get six which of course is what 3 * 2 is so let's kick this up a not suppose that I want to do a bunch of multiplications and I want to log all of them to the console if I do something like that without a function then it would look pretty messy so for example I need to repeat this code so let's go ahead and"
+        }
+      ]
+    },
+    {
+      "id": "include-guards",
+      "question": "I've seen headers that use #ifndef and #define instead of #pragma once. How does that work, and are they the same thing?",
+      "category": "hit below rank 1",
+      "detail": "first correct result is at rank 2",
+      "rank": 2,
+      "expected": [
+        {
+          "video_id": "9RJTQmK0YPI",
+          "title": "C++ Header Files",
+          "timestamp": "9:48",
+          "text_at_label": "that log is already been included and it does not include it twice now there is one other way that we could add a header guard and I actually kind of like this four teaching purposes because it makes a little bit more sense than some kind of pragma once although pragma once does look a lot cleaner the traditional way to add header guards is via an if def so what we can do is we can actually type in an if and Def and then we can get it to check some kind of symbol for example log H we're going to Define log H and then at the very end of our file we're going to type in and if so what this is going to do is first of all check to see if a symbol called log H is actually defined if it's not defined it's going to go ahead and include the following code in compilation if this was defined then none of this will be included it'll be all disabled so once we do pass this initial check we're going to Define log H which basically means that next time we go through this code it will be defined so it will not be repeated a"
+        },
+        {
+          "video_id": "9RJTQmK0YPI",
+          "title": "C++ Header Files",
+          "timestamp": "11:07",
+          "text_at_label": "really easy way to demonstrate this is just to copy and paste this entire file into our log CPP file and then if we take a look at this I'll also comment out log. H and common. H so you can see over here that the first time this is all fine it includes the file and everything's okay and then the second time it's all gray out because log H has already been defined so this kind of head of guard is something that was used a lot in the past however now we have this new pre-processor statement called pragma once and so we mostly use that it doesn't matter which one you use to some extent although pragma once is a lot cleaner so it's something that I personally use and it's something that most people do use in the industry pretty much every compiler now supports pragma one so there isn't it's not like a visual studio only thing GCC clang msvc they all support once so don't be afraid to use it that being said if you do find Legacy code or just code the people have written using different"
+        }
+      ],
+      "retrieved": [
+        {
+          "rank": 1,
+          "video_id": "9RJTQmK0YPI",
+          "title": "C++ Header Files",
+          "timestamp": "7:02",
+          "text": "program we can see that we managed to initialize our log and then log hello world to the console fantastic all right brilliant so let's go back to that header file and take a look at what that pragma one statement actually was so here we have a statement that Visual Studio has seemingly inserted for us called hash pragma once what is this so firstly anything that begins with a hash is known as a pre-processor command or a pre-processor directive it means that this is going to be evaluated by the C++ pre-processor before this file actually gets compiled pragma is essentially an instruction that is sent to the compiler or to the pre-processor and what pragma once essentially means is that only include this file once so pragma once is something called a header guard what it"
+        },
+        {
+          "rank": 2,
+          "video_id": "9RJTQmK0YPI",
+          "title": "C++ Header Files",
+          "timestamp": "9:44",
+          "text": "that log is already been included and it does not include it twice now there is one other way that we could add a header guard and I actually kind of like this four teaching purposes because it makes a little bit more sense than some kind of pragma once although pragma once does look a lot cleaner the traditional way to add header guards is via an if def so what we can do is we can actually type in an if and Def and then we can get it to check some kind of symbol for example log H we're going to Define log H and then at the very end of our file we're going to type in and if so what this is going to do is first of all check to see if a symbol called log H is actually defined if it's not defined it's going to go ahead and include the following code in compilation if this was defined then none of this will be included it'll be all disabled so once we do pass this initial check we're going to Define log H which basically means that next time we go through this code it will be defined so it will not be repeated a"
+        },
+        {
+          "rank": 3,
+          "video_id": "9RJTQmK0YPI",
+          "title": "C++ Header Files",
+          "timestamp": "11:35",
+          "text": "styles you may encounter this if and Def header guard so just be wary of what it is but again I would never write if and F I would always use pragma ones the last thing I want to show you is with header guards we have this kind of discrepancy between include statements some include statements use quotes some include statements use angular brackets what is the deal deal is actually pretty simple they mean two different things when we compile our program we have the ability to tell the compiler of certain include paths these are basically paths to folders in our computer that contain include files if the include file that we want to include is inside one of these folders we can use angular brackets to tell the compiler to search our include path folders whereas quotes on the other hand are usually used to include files that are relative to the current file so for example if I had a file called log. that was up One Directory from this current log. CPP file I could use do flash to go back and that would actually go back to a directory because this is relative to this current file whereas with angular brackets they are never relative to this current file they just have to be in one of the include directories we'll talk more about setting up include directories and all that in the future I don't want to complicate things too much but that's basically the gist of how this works now quotes can also be used to specify files that are relative to include directories that are pass to our compiler so you can actually use quotes anywhere I can replace this IO stream to be in quotes and it would totally work so angular brackets only for compiler include paths quotes for everything however I usually like to use them just for relative Parts since you might as well use the angular brackets for"
+        }
+      ]
+    },
+    {
+      "id": "ref-no-reassign",
+      "question": "Why can't I make a reference point to a different variable after I've created it?",
+      "category": "hit below rank 1",
+      "detail": "first correct result is at rank 2",
+      "rank": 2,
+      "expected": [
+        {
+          "video_id": "IzoFn3dfsPA",
+          "title": "REFERENCES in C++",
+          "timestamp": "7:28",
+          "text_at_label": "in a and since it is being passed by reference we've basically Rewritten the code to do exactly the same thing internally when it gets compiled it will be exactly the same as what we've written before however this time it just looks nicer in our source code again that's the only difference if I run my program you can see we get six so that is all that references really are they are just syntax sugar references there is nothing you can do with a reference that you cannot do with a pointer pointers are like references except they're even more useful and they're even more powerful however if you can get away with using a reference like what we just did here absolutely use a reference because it's going to be a lot cleaner and simpler to read not that pointers are really really difficult to read but it will look a lot cleaner in your source code one other important thing that I want to mention with"
+        },
+        {
+          "video_id": "IzoFn3dfsPA",
+          "title": "REFERENCES in C++",
+          "timestamp": "8:25",
+          "text_at_label": "references is that once you declare a reference you cannot change what it references what I mean by that is that suppose that I had two integers I Had A and B and B was set to eight a was set to five and then what I wanted to do is declare a reference that was set to a and then maybe later on in my code I decided oh actually you know what I want to set my reference to be referencing B can I do something like that the answer is no you can't do that what will happen in this case is that it will effectively create a reference to a and then when you decide to set that reference equal to B it will just set a equal to the value of B which is 8 so what you will end up with here is a being equal to 8 and B being equal to 8 that is that's it that's what you'll get and of course because of that that also means that when you declare a reference you need to actually assign it to something you cannot just do this you can see that the compiler will not let you do that it requires an initializer when you declare a reference you have to immediately assign it to something because it has to reference something because remember it's not really a real variable it's a reference so in this example specifically what would I do if I actually wanted this kind of functionality if I wanted to actually change what ref was a reference of well of course as I mentioned earlier this isn't a real variable we would need to create some kind of variable of sorts"
+        }
+      ],
+      "retrieved": [
+        {
+          "rank": 1,
+          "video_id": "IzoFn3dfsPA",
+          "title": "REFERENCES in C++",
+          "timestamp": "1:52",
+          "text": "code let's say that I make a variable I'll call it a and I'll set it equal to 5 it's just going to be an integer if I want to create a reference to that variable I can do so by typing in the type of the variable followed by an ampersand note here that the Ampersand is actually part of the variable declaration in the previous video about pointers we learned that if we create a pointer uh we can use the Ampersand operator here to actually take the memory address of an existing variable it's different here because the Ampersand is actually part of the type it's not you can see it's not actually next to an existing variable it's part of the type so just note that difference"
+        },
+        {
+          "rank": 2,
+          "video_id": "IzoFn3dfsPA",
+          "title": "REFERENCES in C++",
+          "timestamp": "7:30",
+          "text": "references is that once you declare a reference you cannot change what it references what I mean by that is that suppose that I had two integers I Had A and B and B was set to eight a was set to five and then what I wanted to do is declare a reference that was set to a and then maybe later on in my code I decided oh actually you know what I want to set my reference to be referencing B can I do something like that the answer is no you can't do that what will happen in this case is that it will effectively create a reference to a and then when you decide to set that reference equal to B it will just set a equal to the value of B which is 8 so what you will end up with here is a being equal to 8 and B being equal to 8 that is that's it that's what you'll get and of course because of that that also means that when you declare a reference you need to actually assign it to something you cannot just do this you can see that the compiler will not let you do that it requires an initializer when you declare a reference you have to immediately assign it to something because it has to reference something because remember it's not really a real variable it's a reference so in this example specifically what would I do if I actually wanted this kind of functionality if I wanted to actually change what ref was a reference of well of course as I mentioned earlier this isn't a real variable we would need to create some kind of variable of sorts"
+        },
+        {
+          "rank": 3,
+          "video_id": "IzoFn3dfsPA",
+          "title": "REFERENCES in C++",
+          "timestamp": "1:03",
+          "text": "reference an existing variable unlike a pointer where you could create a new pointer variable and then set it equal to null pointer or something like that set it equal to zero you can't do that with references because references have to reference an already existing variable references themselves are not new variables They Don't Really occupy memory they don't really have storage they're not like your typical variable because what they are in instead is a reference to a variable I'm going to be bringing up a few different examples in this video however I'm going to keep it brief because references aren't that complicated and the best way really to learn how to use them is actually to start using them so as the series goes on we'll be using them all the time and you'll see what kind of the best practice is or at least my opinion on what the best practice is uh to do with references however if we jump into some"
+        }
+      ]
+    }
+  ]
+}

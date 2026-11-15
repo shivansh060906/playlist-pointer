@@ -1,0 +1,2 @@
+# Optional: local transcription fallback (used by `ingest --whisper-fallback` / `--force-whisper`)
+faster-whisper>=1.0
