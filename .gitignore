@@ -7,7 +7,14 @@ __pycache__/
 backend/data/
 backend/eval/questions.json
 backend/eval/results/
-backend/audit/
+backend/eval/audit
 node_modules/
 dist/
 .DS_Store
+.idea/
+
+/frontend/node_modules
+/frontend/dist
+/frontend/*.local
+/frontend/.DS_Store
+
